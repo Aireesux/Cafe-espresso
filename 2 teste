@@ -2,6 +2,7 @@ import tkinter as tk
 from tkinter import messagebox
 import statistics
 import matplotlib.pyplot as plt
+import numpy as np  # Importando NumPy
 
 # Função para calcular estatísticas
 def calcular_estatisticas(respostas):
@@ -40,14 +41,23 @@ def mostrar_grafico():
         
         # Acha o índice da resposta correspondente
         resposta_usuario = respostas[i]
-        destaque = [1 if idx == resposta_usuario else 0 for idx in range(len(dados[i]))]
         
-        # Adiciona a cor do destaque
-        cores = ['lightcoral' if d == 1 else 'lightblue' for d in destaque]
-        
-        plt.pie(dados[i], labels=opcoes[i], autopct='%1.1f%%', startangle=90, colors=cores)
+        # Plotar gráfico de pizza
+        wedges, texts, autotexts = plt.pie(dados[i], labels=opcoes[i], autopct='%1.1f%%', startangle=90)
         plt.title(f"{perguntas[i]} \nMédia: {media:.2f}, Moda: {moda}, Mediana: {mediana}")
         plt.axis('equal')  # Para garantir que o gráfico seja um círculo
+
+        # Adicionando o ponto "Você"
+        angle = (autotexts[resposta_usuario].get_position()[0] + 180) % 360  # Calcular o ângulo
+        x = 0.6 * np.cos(np.radians(angle))  # Coordenada x do ponto
+        y = 0.6 * np.sin(np.radians(angle))  # Coordenada y do ponto
+        
+        # Ajustar a posição do ponto "Você" para ficar um pouco mais distante do centro
+        x += 0.1 * np.sign(x)  # Mover um pouco para a direita ou esquerda
+        y += 0.1 * np.sign(y)  # Mover um pouco para cima ou para baixo
+        
+        plt.annotate("Você", xy=(x, y), fontsize=12, color='red', ha='center', va='center', fontweight='bold')
+
         plt.show()
 
 # Função chamada quando uma resposta é submetida
