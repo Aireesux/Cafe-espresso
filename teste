@@ -1,0 +1,128 @@
+import tkinter as tk
+from tkinter import messagebox
+import statistics
+import matplotlib.pyplot as plt
+
+# Função para calcular estatísticas
+def calcular_estatisticas(respostas):
+    media = statistics.mean(respostas)
+    moda = statistics.mode(respostas)
+    mediana = statistics.median(respostas)
+    return media, moda, mediana
+
+# Função para exibir o gráfico
+def mostrar_grafico():
+    perguntas = ["Frequência", "Período do Dia", "Local de Consumo", "Xícaras por Dia", "Preferência de Preparo"]
+    
+    # Dados para as perguntas
+    dados = [
+        [0, 5, 2, 2, 0],  # Frequência
+        [5, 0, 3, 2],     # Período do dia
+        [6, 1, 1, 1, 1],  # Local de Consumo
+        [8, 0, 1, 1],     # Xícaras por Dia
+        [5, 3, 0, 1, 1]   # Preferência de Preparo
+    ]
+    
+    opcoes = [
+        ["Nunca", "Raramente", "Moderadamente", "Diariamente", "Várias vezes ao dia"],
+        ["Manhã", "Tarde", "Noite", "O dia todo"],
+        ["Casa", "Trabalho", "Cafeterias", "Escola", "Todos os lugares"],
+        ["1", "2-3", "4-5", "Mais de 5"],
+        ["Com açúcar", "Com leite", "Com adoçante", "Puro", "Todos"]
+    ]
+    
+    # Calcular e mostrar estatísticas para cada pergunta
+    for i in range(len(perguntas)):
+        media, moda, mediana = calcular_estatisticas(dados[i])
+        
+        # Criar gráfico de pizza
+        plt.figure(figsize=(8, 6))
+        plt.pie(dados[i], labels=opcoes[i], autopct='%1.1f%%', startangle=90)
+        plt.title(f"{perguntas[i]} \nMédia: {media:.2f}, Moda: {moda}, Mediana: {mediana}")
+        plt.axis('equal')  # Para garantir que o gráfico seja um círculo
+        plt.show()
+
+# Função chamada quando uma resposta é submetida
+def submit_resposta():
+    resposta = variavel_opcao.get()
+    
+    if resposta == "":
+        messagebox.showerror("Erro", "Por favor, selecione uma resposta.")
+        return
+    
+    respostas.append(int(resposta))
+
+    # Atualizar o progresso
+    progresso = len(respostas) / total_perguntas * 100
+    label_progresso.config(text=f"Progresso: {len(respostas)}/{total_perguntas} ({progresso:.2f}%)")
+
+    # Avançar para a próxima pergunta ou finalizar
+    if len(respostas) < total_perguntas:
+        mostrar_pergunta(len(respostas))
+    else:
+        # Calcular estatísticas
+        media, moda, mediana = calcular_estatisticas(respostas)
+        resultado = f"Média: {media:.2f}\nModa: {moda}\nMediana: {mediana}"
+        messagebox.showinfo("Resultados da Pesquisa", resultado)
+        mostrar_grafico()
+        root.quit()
+
+# Função para mostrar a pergunta atual
+def mostrar_pergunta(indice):
+    pergunta_atual, opcoes = perguntas[indice]
+    label_pergunta.config(text=pergunta_atual)
+
+    # Limpar as opções anteriores
+    for widget in frame_opcoes.winfo_children():
+        widget.destroy()
+
+    # Criar novos botões de rádio para as opções
+    for opcao, valor in opcoes.items():
+        tk.Radiobutton(frame_opcoes, text=opcao, variable=variavel_opcao, value=valor).pack(anchor="w")
+
+# Configuração inicial da janela
+root = tk.Tk()
+root.title("Pesquisa sobre Café")
+
+# Variáveis e widgets da interface
+total_perguntas = 5
+respostas = []  # Lista para armazenar as respostas
+
+# Perguntas e opções
+perguntas = [
+    ("1. Com que frequência você costuma beber café?", 
+     {"Nunca": 1, "Raramente (1-2 vezes por semana)": 2, "Moderadamente (3-4 vezes por semana)": 3, "Diariamente": 4, "Várias vezes ao dia": 5}),
+    
+    ("2. Em que período do dia você costuma beber café?", 
+     {"Manhã": 0, "Tarde": 1, "Noite": 2, "O dia todo": 3}),
+    
+    ("3. Como você prefere o seu café?", 
+     {"Puro": 1, "Com açúcar": 2, "Com adoçante": 3, "Com leite/creme": 4}),
+    
+    ("4. Onde você costuma consumir café?", 
+     {"Casa": 0, "Trabalho": 1, "Cafeterias": 2, "Restaurantes": 3}),
+    
+    ("5. Quantas xícaras de café você consome por dia?", 
+     {"1": 0, "2-3": 1, "4-5": 2, "Mais de 5": 3}),
+]
+
+variavel_opcao = tk.StringVar(value="")
+
+# Elementos da interface
+label_pergunta = tk.Label(root, text="", wraplength=400)
+label_pergunta.pack(pady=10)
+
+frame_opcoes = tk.Frame(root)
+frame_opcoes.pack(pady=5)
+
+botao_submit = tk.Button(root, text="Enviar", command=submit_resposta)
+botao_submit.pack(pady=10)
+
+label_progresso = tk.Label(root, text="Progresso: 0/5 (0.00%)")
+label_progresso.pack(pady=10)
+
+# Iniciar a primeira pergunta
+mostrar_pergunta(0)
+
+# Iniciar a interface gráfica
+root.mainloop()
